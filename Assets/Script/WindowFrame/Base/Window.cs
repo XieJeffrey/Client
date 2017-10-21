@@ -35,7 +35,7 @@ namespace WindowFramework
 
         public virtual void OnClose()
         {
-            //string abName = Util.Upper2LowerAnd_(m_name.Replace("Window", ""));
+            string abName = Util.Upper2LowerAnd_(m_name.Replace("Window", ""));          
             //AppFacade.Instance.GetManager<SimpleFramework.Manager.ResourceManager>(ManagerName.Resource).UnloadAssetBundle(abName + AppConst.ExtName);
         }
 

@@ -9,16 +9,16 @@ using UObject = UnityEngine.Object;
 public class AssetBundleInfo
 {
     public AssetBundle m_AssetBundle;
-    public int m_ReferenceCount = 0;
+    public int m_ReferencedCount = 0;
 
     public AssetBundleInfo(AssetBundle assetBundle)
     {
         m_AssetBundle = assetBundle;
-        m_ReferenceCount = 0;
+        m_ReferencedCount = 0;
     }
 }
 
-public class ResourceManager : Singleton<ResourceManager>
+public class ResourceManager :MonoBehaviour
 {
 
     class LoadAssetRequest
@@ -28,18 +28,19 @@ public class ResourceManager : Singleton<ResourceManager>
         public Action<UObject[]> sharpFunc;
     }
 
-    string m_BaseDownloadUrl = "";
+    string m_BaseDownloadingURL = "";
     string[] m_AllManifest = null;
 
     AssetBundleManifest m_AssetBundleManifest = null;
     Dictionary<string, string[]> m_Dependencies = new Dictionary<string, string[]>();
-    Dictionary<string, AssetBundleInfo> m_LoadedAssetbundles = new Dictionary<string, AssetBundleInfo>();
-    Dictionary<string, List<LoadAssetRequest>> m_loaddRequests = new Dictionary<string, List<LoadAssetRequest>>();
+    Dictionary<string, AssetBundleInfo> m_LoadedAssetBundles = new Dictionary<string, AssetBundleInfo>();
+    Dictionary<string, List<LoadAssetRequest>> m_LoadRequests = new Dictionary<string, List<LoadAssetRequest>>();
     Dictionary<string, int> m_loadingRequests = new Dictionary<string, int>();
 
     public void Initialize(string manifestName, Action initOK)
     {
-        m_BaseDownloadUrl = "";//todo
+        m_BaseDownloadingURL = Util.GetRelativePath();
+        
 
     }
 
@@ -60,6 +61,183 @@ public class ResourceManager : Singleton<ResourceManager>
 
     string GetRealAssetPath(string abName)
     {
-        return "";
+        if (abName.Equals(Util.AssetDirname))
+            return abName;
+        abName = abName.ToLower();
+        if (!abName.EndsWith(AppConst.ExtName))
+        {
+            abName += AppConst.ExtName;
+        }
+        if (abName.Contains("/"))
+            return abName;
+
+        for (int i = 0; i < m_AllManifest.Length; i++)
+        {
+            if (m_AllManifest[i].Equals(abName))
+            {
+                return m_AllManifest[i];
+            }
+        }
+        Debug.LogError("GetRealAssetPath Error:>>" + abName);
+        return null;
+    }
+
+    void LoadAsset<T>(string abName, string[] assetNames, Action<UObject[]> action = null) where T : UObject
+    {
+        abName = GetRealAssetPath(abName);
+        //请求句柄
+        LoadAssetRequest request = new LoadAssetRequest();
+        request.assetType = typeof(T);
+        request.assetNames = assetNames;      
+        request.sharpFunc = action;
+        Util.Log("load asset requset init");
+        List<LoadAssetRequest> requests = null;
+        if (!m_LoadRequests.TryGetValue(abName, out requests))
+        {
+
+            requests = new List<LoadAssetRequest>();
+            requests.Add(request);
+            m_LoadRequests.Add(abName, requests);
+
+        }
+        else
+        {
+            //假如一个界面同时创建两次，则同时存在两个请求，那么接下来是什么操作？
+            requests.Add(request);
+
+        }
+        StartCoroutine(OnLoadAsset<T>(abName));
+    }
+
+    IEnumerator OnLoadAsset<T>(string abName) where T : UObject
+    {
+        //从已经加载的bundle里获取bundle
+        AssetBundleInfo bundleInfo = GetLoadedAssetBundle(abName);
+        Util.Log("开始 OnLoadAsset<T>:bundleInfo==null->{0}", bundleInfo == null);
+        if (bundleInfo == null)
+        {
+            //如果bundle为空，执行加载bundle的流程
+            yield return StartCoroutine(OnLoadAssetBundle(abName, typeof(T)));
+
+            bundleInfo = GetLoadedAssetBundle(abName);
+            //加载完毕的时候如果已经加载的bundle还是空？请求加载的队列删除掉？
+            if (bundleInfo == null)
+            {
+                m_LoadRequests.Remove(abName);
+                Debug.LogError("OnLoadAsset--->>>" + abName);
+                yield break;
+            }
+        }
+        List<LoadAssetRequest> list = null;
+        Util.Log("Get assetbundleInfo");
+        if (!m_LoadRequests.TryGetValue(abName, out list))
+        {
+            m_LoadRequests.Remove(abName);
+            yield break;
+        }
+        Util.Log("准备实例化并执行请求回调");
+        for (int i = 0; i < list.Count; i++)
+        {
+            string[] assetNames = list[i].assetNames;
+            List<UObject> result = new List<UObject>();
+
+            AssetBundle ab = bundleInfo.m_AssetBundle;
+            for (int j = 0; j < assetNames.Length; j++)
+            {
+                string assetPath = assetNames[j];
+#if !UNITY_EDITOR
+                    AssetBundleRequest request = ab.LoadAssetAsync(assetPath, list[i].assetType);
+                    yield return request;
+                    result.Add(request.asset);
+#else
+                UnityEngine.Object obj = ab.LoadAsset(assetPath, list[i].assetType);
+                result.Add(obj);
+#endif
+
+                //T assetObj = ab.LoadAsset<T>(assetPath);
+                //result.Add(assetObj);
+            }
+            if (list[i].sharpFunc != null)
+            {
+                list[i].sharpFunc(result.ToArray());
+                list[i].sharpFunc = null;
+            }            
+            bundleInfo.m_ReferencedCount++;
+        }
+        m_LoadRequests.Remove(abName);
+    }
+
+    AssetBundleInfo GetLoadedAssetBundle(string abName)
+    {
+        AssetBundleInfo bundle = null;
+        m_LoadedAssetBundles.TryGetValue(abName, out bundle);
+        if (bundle == null) return null;
+
+        // No dependencies are recorded, only the bundle itself is required.
+        string[] dependencies = null;
+        if (!m_Dependencies.TryGetValue(abName, out dependencies))
+            return bundle;
+
+        // Make sure all dependencies are loaded
+        foreach (var dependency in dependencies)
+        {
+            AssetBundleInfo dependentBundle;
+            m_LoadedAssetBundles.TryGetValue(dependency, out dependentBundle);
+            if (dependentBundle == null) return null;
+        }
+        return bundle;
+    }
+
+    IEnumerator OnLoadAssetBundle(string abName, Type type)
+    {
+        string url = m_BaseDownloadingURL + abName;
+
+        WWW download = null;
+        if (type == typeof(AssetBundleManifest))
+            download = new WWW(url);
+        else
+        {
+            string[] dependencies = m_AssetBundleManifest.GetAllDependencies(abName);
+            //获取该bundle的引用bundle
+            if (dependencies.Length > 0)
+            {
+                if (m_Dependencies.ContainsKey(abName) == false)
+                    m_Dependencies.Add(abName, dependencies);
+                for (int i = 0; i < dependencies.Length; i++)
+                {
+                    string depName = dependencies[i];
+                    AssetBundleInfo bundleInfo = null;
+                    if (m_LoadedAssetBundles.TryGetValue(depName, out bundleInfo))
+                    {
+                        bundleInfo.m_ReferencedCount++;
+                    }
+                    else if (!m_LoadRequests.ContainsKey(depName))
+                    {
+                        if (m_loadingRequests.ContainsKey(depName))
+                        {
+                            m_loadingRequests[depName]++;
+                        }
+                        else
+                        {
+                            m_loadingRequests.Add(depName, 1);
+                            yield return StartCoroutine(OnLoadAssetBundle(depName, type));
+                        }
+                    }
+                }
+            }
+            download = WWW.LoadFromCacheOrDownload(url, m_AssetBundleManifest.GetAssetBundleHash(abName), 0);
+        }
+        yield return download;
+
+        AssetBundle assetObj = download.assetBundle;
+        if (assetObj != null)
+        {
+            m_LoadedAssetBundles.Add(abName, new AssetBundleInfo(assetObj));
+            if (m_loadingRequests.ContainsKey(abName))
+            {
+                m_LoadedAssetBundles[abName].m_ReferencedCount = m_loadingRequests[abName];
+                m_loadingRequests.Remove(abName);
+            }
+        }
     }
 }

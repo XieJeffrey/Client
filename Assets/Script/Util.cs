@@ -81,4 +81,28 @@ public class Util : Singleton<Util>
         }
     }
 
+    public static string Upper2LowerAnd_(string ostr)
+    {
+        List<char> c = new List<char>(ostr.ToCharArray());
+        for (int i = c.Count - 1; i > 0; i--)
+        {
+            if (c[i] >= 65 && c[i] <= 90)
+            {
+                c.Insert(i, '_');
+            }
+        }
+        ostr = new string(c.ToArray());
+        return ostr.ToLower();
+    }
+
+    public static string GetRelativePath()
+    {
+        if (Application.isMobilePlatform || Application.isConsolePlatform)
+            return "file:///" + DataPath;
+        else if (Application.isEditor)
+            return "file://" + DataPath;
+        else
+            return "file:///" + DataPath;
+    }
+
 }
