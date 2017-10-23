@@ -7,6 +7,21 @@ using System.Text;
 
 public class Util : Singleton<Util>
 {
+    public static bool IsNet
+    {
+        get
+        {
+            return Application.internetReachability != NetworkReachability.NotReachable;
+        }
+    }
+
+    public static bool IsWifi
+    {
+        get
+        {
+            return Application.internetReachability == NetworkReachability.ReachableViaLocalAreaNetwork;
+        }
+    }
 
     public static string DataPath
     {
