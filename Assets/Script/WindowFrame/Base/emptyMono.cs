@@ -1,10 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace WindowFramework
-{
-    public class emptyMono : MonoBehaviour
-    {
 
-    }
+public class emptyMono : MonoBehaviour
+{
+
 }
+

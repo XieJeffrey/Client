@@ -2,8 +2,7 @@
 using System.Collections.Generic;
 
 
-namespace WindowFramework
-{
+
     public class Manager
     {
         private Dictionary<MgrEventType, EventManager.VoidHandle> m_eventList = new Dictionary<MgrEventType, EventManager.VoidHandle>();
@@ -29,4 +28,4 @@ namespace WindowFramework
             //SimpleFramework.Util.LogError("{0}已经被注册了", m_eventType.ToString());
         }
     }
-}
+

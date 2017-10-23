@@ -1,24 +1,38 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using System;
-using UnityEngine.UI;
-using UnityEngine.EventSystems;
-using NetWorkManager;
 
-public class Main : MonoBehaviour
-{
-    public GameObject Button;
-    void Start()
+public class Main : MonoBehaviour {
+    public static ResourceManager ResManager;
+     void Awake()
     {
-        SocketClient client = new SocketClient();
-        client.SendConnect("127.0.0.1",9900);
-        client.SendMessage(1, 2, null, "10001");
+        gameObject.AddComponent<OutLog>();
     }
 
-    // Update is called once per frame
-    void Update()
-    {       
+
+    // Use this for initialization
+    void Start () {
+        if (AppConst.IsUpdate)
+            return;
+        else
+            GameInit();
+	}
+	
+	
+
+    void GameInit()
+    {
+        ResManager= gameObject.AddComponent<ResourceManager>();
+        ResManager.Initialize(Util.AssetDirname, delegate ()
+        {
+            Debug.Log("Initialize OK!!!");
+            this.OnInit();
+        });
        
+    }
+
+    void OnInit()
+    {
+        gameObject.AddComponent<GameManager>();
     }
 }

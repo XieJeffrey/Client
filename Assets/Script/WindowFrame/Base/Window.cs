@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace WindowFramework
-{
 
     public class Window
     {
@@ -357,4 +355,4 @@ namespace WindowFramework
         TypeNormal = 1,
         TypeCache = 2,
     }
-}
+

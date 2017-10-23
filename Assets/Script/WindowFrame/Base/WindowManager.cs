@@ -3,8 +3,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 
-namespace WindowFramework
-{
+
     public class WindowManager : Singleton<WindowManager>
     {
         private Dictionary<WindowType, Window> m_winDic = new Dictionary<WindowType, Window>();
@@ -182,4 +181,4 @@ namespace WindowFramework
                 CloseAllWindows();
         }
     }
-}
+

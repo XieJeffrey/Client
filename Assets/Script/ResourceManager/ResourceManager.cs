@@ -18,7 +18,7 @@ public class AssetBundleInfo
     }
 }
 
-public class ResourceManager :MonoBehaviour
+public class ResourceManager : MonoBehaviour
 {
 
     class LoadAssetRequest
@@ -40,23 +40,37 @@ public class ResourceManager :MonoBehaviour
     public void Initialize(string manifestName, Action initOK)
     {
         m_BaseDownloadingURL = Util.GetRelativePath();
-        
-
+        LoadAsset<AssetBundleManifest>(manifestName, new string[] { "AssetBundleManifest" }, delegate (UObject[] objs)
+        {
+            if (objs.Length > 0)
+            {
+                m_AssetBundleManifest = objs[0] as AssetBundleManifest;
+                m_AllManifest = m_AssetBundleManifest.GetAllAssetBundles();
+            }
+            if (initOK != null) initOK();
+        });
     }
 
 
     public void LoadPrefab(string abName, string assetName, Action<UObject[]> func)
     {
+        LoadAsset<GameObject>(abName, new string[] { assetName }, func);
+    }
 
+    public void LoadPrefab(string abName, string[] assetName, Action<UObject[]> func)
+    {
+        LoadAsset<GameObject>(abName, assetName, func);
     }
 
     public void LoadImage(string abName, string assetName, Action<UObject[]> func)
     {
-
+        LoadAsset<Sprite>(abName, new string[] { assetName }, func);
     }
 
-    public void LoadAudio(string abName, string assetName, Action<UObject> func)
-    { }
+    public void LoadAudio(string abName, string assetName, Action<UObject[]> func)
+    {
+        LoadAsset<AudioClip>(abName, new string[] { assetName }, func);
+    }
 
 
     string GetRealAssetPath(string abName)
@@ -88,13 +102,12 @@ public class ResourceManager :MonoBehaviour
         //请求句柄
         LoadAssetRequest request = new LoadAssetRequest();
         request.assetType = typeof(T);
-        request.assetNames = assetNames;      
+        request.assetNames = assetNames;
         request.sharpFunc = action;
         Util.Log("load asset requset init");
         List<LoadAssetRequest> requests = null;
         if (!m_LoadRequests.TryGetValue(abName, out requests))
         {
-
             requests = new List<LoadAssetRequest>();
             requests.Add(request);
             m_LoadRequests.Add(abName, requests);
@@ -102,7 +115,6 @@ public class ResourceManager :MonoBehaviour
         }
         else
         {
-            //假如一个界面同时创建两次，则同时存在两个请求，那么接下来是什么操作？
             requests.Add(request);
 
         }
@@ -113,7 +125,6 @@ public class ResourceManager :MonoBehaviour
     {
         //从已经加载的bundle里获取bundle
         AssetBundleInfo bundleInfo = GetLoadedAssetBundle(abName);
-        Util.Log("开始 OnLoadAsset<T>:bundleInfo==null->{0}", bundleInfo == null);
         if (bundleInfo == null)
         {
             //如果bundle为空，执行加载bundle的流程
@@ -161,7 +172,7 @@ public class ResourceManager :MonoBehaviour
             {
                 list[i].sharpFunc(result.ToArray());
                 list[i].sharpFunc = null;
-            }            
+            }
             bundleInfo.m_ReferencedCount++;
         }
         m_LoadRequests.Remove(abName);
@@ -238,6 +249,46 @@ public class ResourceManager :MonoBehaviour
                 m_LoadedAssetBundles[abName].m_ReferencedCount = m_loadingRequests[abName];
                 m_loadingRequests.Remove(abName);
             }
+        }
+    }
+
+    public void UnLoadAssetBundle(string abName, bool isThorough = false)
+    {
+        abName = GetRealAssetPath(abName);
+        Debug.Log(m_LoadedAssetBundles.Count + " assetbundle(s) in memory before unloading " + abName);
+        UnloadAssetBundleInternal(abName, isThorough);
+        UnloadDependencies(abName, isThorough);
+        Debug.Log(m_LoadedAssetBundles.Count + " assetbundle(s) in memory after unloading " + abName);
+    }
+
+    void UnloadDependencies(string abName, bool isThorough)
+    {
+        string[] dependencies = null;
+        if (!m_Dependencies.TryGetValue(abName, out dependencies))
+            return;
+
+        // Loop dependencies.
+        foreach (var dependency in dependencies)
+        {
+            UnloadAssetBundleInternal(dependency, isThorough);
+        }
+        m_Dependencies.Remove(abName);
+    }
+
+    void UnloadAssetBundleInternal(string abName, bool isThorough)
+    {
+        AssetBundleInfo bundle = GetLoadedAssetBundle(abName);
+        if (bundle == null) return;
+
+        if (--bundle.m_ReferencedCount <= 0)
+        {
+            if (m_LoadRequests.ContainsKey(abName))
+            {
+                return;     //如果当前AB处于Async Loading过程中，卸载会崩溃，只减去引用计数即可
+            }
+            bundle.m_AssetBundle.Unload(isThorough);
+            m_LoadedAssetBundles.Remove(abName);
+            Debug.Log(abName + " has been unloaded successfully");
         }
     }
 }

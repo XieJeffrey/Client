@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-namespace WindowFramework
-{
+
     public class SingletonWindow<T> : Window where T : Window
     {
         protected static T ms_instance = null;
@@ -25,4 +24,3 @@ namespace WindowFramework
             ms_instance = this as T;
         }
     }
-}

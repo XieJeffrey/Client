@@ -5,8 +5,7 @@ using System.IO;
 using System.Collections.Generic;
 using UnityEngine.UI;
 
-namespace WindowFramework
-{
+
     public class Global : Singleton<Global>
     {
         public void InitManager()
@@ -56,5 +55,5 @@ namespace WindowFramework
         #endregion
 
     }
-}
+
 

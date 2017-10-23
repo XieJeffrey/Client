@@ -1,8 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-namespace WindowFramework
-{
+
     public class SingletonManager<T> : Manager where T : Manager
     {
 
@@ -25,4 +24,4 @@ namespace WindowFramework
             ms_instance = this as T;
         }
     }
-}
+

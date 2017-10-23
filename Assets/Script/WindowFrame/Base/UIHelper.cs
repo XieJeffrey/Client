@@ -4,7 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-namespace WindowFramework {
+
     public class UIHelper : Singleton<UIHelper>
     {
         private Dictionary<string, Texture> m_textureRes = new Dictionary<string, Texture>();
@@ -28,15 +28,17 @@ namespace WindowFramework {
                 return;
             }
 
-            switch (win.resType)
-            {
-                case ResourceType.Resource:
+            PanelManager.instance.CreatePanel(win, win.bundle, handle, isShow, param);
 
-                    break;
-                case ResourceType.AssetBundle:
-                    // SimpleFramework.LuaHelper.GetPanelManager().CreatePanel(win,win.bundle,handle,isShow,param);
-                    break;
-            }
+            //switch (win.resType)
+            //{
+            //    case ResourceType.Resource:
+
+            //        break;
+            //    case ResourceType.AssetBundle:
+            //        // SimpleFramework.LuaHelper.GetPanelManager().CreatePanel();
+            //        break;
+            //}
         }
 
         public GameObject Find(GameObject m_go, string goName)
@@ -90,4 +92,4 @@ namespace WindowFramework {
         }
     }
 
-}
+

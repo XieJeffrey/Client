@@ -2,8 +2,7 @@
 using System.Collections;
 using System.Reflection;
 
-namespace WindowFramework
-{
+
 
     public class Utility : Singleton<Utility>
     {
@@ -75,4 +74,4 @@ namespace WindowFramework
             return clone;
         }
     }
-}
+

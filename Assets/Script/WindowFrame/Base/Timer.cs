@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 
 
-namespace WindowFramework {
+
     public class Timer : Singleton<Timer>
     {
         private List<timer> timerList = new List<timer>();
@@ -53,4 +53,4 @@ namespace WindowFramework {
             timerList.Clear();
         }
     }
-}
+
