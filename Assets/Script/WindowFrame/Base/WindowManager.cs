@@ -32,6 +32,7 @@ using System.Collections.Generic;
             m_winDic.Add(wintype, win);
             m_winList.Add(win);
         }
+
         public void InsertWindow(Window win)
         {
             WindowType winType = (WindowType)Enum.Parse(typeof(WindowType), win.Name);

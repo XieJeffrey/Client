@@ -4,7 +4,8 @@ using System.IO;
 using UnityEngine;
 using System;
 
-public class UpdateHelper  {
+public class UpdateHelper
+{
     private static int copyIndex = 0;
     private static int copyFileCount = 0;
 
@@ -35,7 +36,7 @@ public class UpdateHelper  {
             {
                 byte[] bytes = www.bytes;
                 string str = System.Text.Encoding.UTF8.GetString(bytes);
-                Util.Log("----------检查app版本->  local:{0}  server:{1}",AppConst.AppVersion,int.Parse(str));
+                Util.Log("----------检查app版本号->  local:{0}  server:{1}", AppConst.AppVersion, int.Parse(str));
                 callBack(AppConst.AppVersion >= int.Parse(str));
             }
         }
@@ -48,16 +49,47 @@ public class UpdateHelper  {
 
     public static IEnumerator DoCopyResToLocal(Action callBack)
     {
-        WaitForEndOfFrame weof = new WaitForEndOfFrame();
-        string[] fileInfo = Directory.GetFiles(Application.streamingAssetsPath);
-        for (int i = 0; i < fileInfo.Length; i++)
+        string path = Application.streamingAssetsPath + "/files.txt";
+        List<string> fileList = new List<string>();
+        if (File.Exists(path))
         {
-            int lastIndex = fileInfo[i].LastIndexOf("\\") + 1;
-            string fileName = fileInfo[i].Substring(lastIndex, fileInfo[i].Length - lastIndex);
+
+#if UNITY_EDITOR          
+            WWW www = new WWW("file:/" + path);
+#else
+		    WWW www = new WWW(url)
+#endif
+            yield return www;
+            if (string.IsNullOrEmpty(www.error))
+            {
+                if (www.isDone)
+                {
+                    byte[] bytes = www.bytes;
+                    string str = System.Text.Encoding.UTF8.GetString(bytes);
+                    string[] md5List = System.Text.Encoding.UTF8.GetString(bytes).Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    for (int i = 0; i < md5List.Length; i++)
+                    {
+                        string[] tmp = md5List[i].Split('|');
+                        fileList.Add(tmp[0].Trim().ToLower());
+                    }
+                }
+            }
+        }
+        else
+        {
+            Util.LogError("Apk资源包中不存在版本文件!");
+            yield break;
+        }
+        WaitForEndOfFrame weof = new WaitForEndOfFrame();
+
+        for (int i = 0; i < fileList.Count; i++)
+        {
+            int lastIndex = fileList[i].LastIndexOf("/") + 1;
+            string fileName = fileList[i].Substring(lastIndex, fileList[i].Length - lastIndex);
             try
             {
                 Util.Log("-----文件复制中:{0}", fileName);
-                File.Copy(fileInfo[i], Util.DataPath, true);
+                File.Copy(fileList[i], Util.DataPath, true);
             }
             catch (System.Exception ex)
             {
@@ -79,14 +111,16 @@ public class UpdateHelper  {
         Util.Log("------资源对比更新中----");
         Dictionary<string, string> md5Dic = new Dictionary<string, string>();
         Dictionary<string, string> newMd5Dic = new Dictionary<string, string>();
-        #region 获取本地资源MD5文件
+        byte[] serverMD5bytes=new byte[0];
+
         string path = Util.DataPath + "/files.txt";
         if (File.Exists(path))
         {
+            #region 获取本地资源MD5文件
 
-#if UNITY_EDITOR          
+#if UNITY_EDITOR
             WWW www = new WWW("file:/" + path);
-#else		   
+#else
 		    WWW www = new WWW(url);
 #endif
             string[] serverMD5File = new string[] { };
@@ -109,17 +143,19 @@ public class UpdateHelper  {
             else
             {
                 Util.LogError(www.error);
+                yield break;
             }
             #endregion
 
             #region 获取服务器资源MD5文件
 
-            www = new WWW(AppConst.ResUrl);
+            www = new WWW(AppConst.ResMD5File);
             yield return www;
             if (string.IsNullOrEmpty(www.error))
             {
                 if (www.isDone)
                 {
+                    serverMD5bytes = www.bytes;
                     string tmpStr = System.Text.Encoding.UTF8.GetString(www.bytes);
                     serverMD5File = tmpStr.Split(new char[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                     for (int i = 0; i < serverMD5File.Length; i++)
@@ -169,6 +205,14 @@ public class UpdateHelper  {
 
             File.WriteAllLines(Util.DataPath + "/version.txt", serverMD5File);
             callBack();
+            #endregion
+
+            #region 重新生成本地MD5文件
+            if (serverMD5bytes.Length > 0)
+            {
+                File.Delete(path);
+                File.WriteAllBytes(path, serverMD5bytes);
+            }
             #endregion
 
         }

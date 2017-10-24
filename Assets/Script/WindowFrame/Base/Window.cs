@@ -33,8 +33,8 @@ using UnityEngine.UI;
 
         public virtual void OnClose()
         {
-            string abName = Util.Upper2LowerAnd_(m_name.Replace("Window", ""));          
-            //AppFacade.Instance.GetManager<SimpleFramework.Manager.ResourceManager>(ManagerName.Resource).UnloadAssetBundle(abName + AppConst.ExtName);
+            string abName = Util.Upper2LowerAnd_(m_name.Replace("Window", ""));
+            Main.ResManager.UnLoadAssetBundle(abName);              
         }
 
         public virtual void OnInit()
