@@ -37,6 +37,22 @@ public class Packager {
         BuildAssetResource(BuildTarget.StandaloneWindows, true);
     }
 
+    [MenuItem("Game/ CopyConfig")]
+    public static void CopyConfig()
+    {
+
+        string resPath = Application.dataPath + "/GameRes/Config/tbl";
+        string desPath = Application.streamingAssetsPath;
+        string[] fileInfos = Directory.GetFiles(resPath);
+        for (int i = 0; i < fileInfos.Length; i++)
+        {
+            if (fileInfos[i].Contains("meta"))
+                continue;
+            string key = fileInfos[i].Replace(resPath + "\\", string.Empty);
+            File.Copy(fileInfos[i], desPath + "/"+key, true);
+        }
+    }
+
 
     /// <summary>
     /// 生成绑定素材
@@ -58,6 +74,8 @@ public class Packager {
         paths.Clear(); files.Clear();
         Recursive(resPath);
 
+
+        #region 写入bundle的MD5
         FileStream fs = new FileStream(newFilePath, FileMode.CreateNew);
         StreamWriter sw = new StreamWriter(fs);
         for (int i = 0; i < files.Count; i++) {
@@ -69,6 +87,22 @@ public class Packager {
             string value = file.Replace(resPath, string.Empty);
             sw.WriteLine(value + "|" + md5);
         }
+        #endregion
+
+        #region 写入配置表的MD5
+        string configPath = Application.dataPath + "/GameRes/Config/tbl";
+        string[] fileInfos = Directory.GetFiles(configPath);
+        for (int i = 0; i < fileInfos.Length; i++)
+        {
+            if (fileInfos[i].Contains("meta"))
+                continue;
+            string md5 = Util.MD5file(fileInfos[i]);
+            string key = fileInfos[i].Replace(configPath+"\\",string.Empty);
+            sw.WriteLine(key + "|" + md5);
+        }
+        #endregion
+
+
         sw.Close();
         fs.Close();
         AssetDatabase.Refresh();

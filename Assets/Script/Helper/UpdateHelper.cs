@@ -54,10 +54,10 @@ public class UpdateHelper
         if (File.Exists(path))
         {
 
-#if UNITY_EDITOR          
+#if UNITY_EDITOR
             WWW www = new WWW("file:/" + path);
 #else
-		    WWW www = new WWW(url)
+            WWW www = new WWW(path);
 #endif
             yield return www;
             if (string.IsNullOrEmpty(www.error))
@@ -121,7 +121,7 @@ public class UpdateHelper
 #if UNITY_EDITOR
             WWW www = new WWW("file:/" + path);
 #else
-		    WWW www = new WWW(url);
+		    WWW www = new WWW(path);
 #endif
             string[] serverMD5File = new string[] { };
             yield return www;

@@ -63,14 +63,14 @@ public class Util : Singleton<Util>
     public static void LogWarnning(string str, params object[] msg)
     {
 #if DEBUG
-        Debug.LogFormat(str, msg);
+        Debug.LogWarningFormat(str, msg);
 #endif
     }
 
     public static void LogError(string str, params object[] msg)
     {
 #if DEBUG
-        Debug.LogFormat(str, msg);
+        Debug.LogErrorFormat(str, msg);
 #endif
     }
 

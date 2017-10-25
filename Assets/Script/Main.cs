@@ -50,6 +50,21 @@ public class Main : MonoBehaviour
     void OnInit()
     {
         gameObject.AddComponent<GameManager>();
+        LoadConfig();
+    }
+
+    void LoadConfig()
+    {
+#if UNITY_EDITOR
+        string path = Application.streamingAssetsPath;
+#else
+        string path = Application.persistentDataPath;
+#endif
+        textBaseManager.instance.Load(path+"/test.tbl");  
+        for (int i = 1; i < textBaseManager.instance.Size; i++)
+        {
+            Util.LogError(textBaseManager.instance.Get(i).heroName);
+        }
     }
 
 
