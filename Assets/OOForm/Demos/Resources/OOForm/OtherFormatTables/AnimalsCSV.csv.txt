@@ -1,6 +1,0 @@
-﻿mName,"mAttack,[int]","mHP,[int]","mMoveSpeed,[float]",mSkillList
-Pig,5,10,0.8,"eat,sleep"
-Monkey,8,6,1.35,"jump,climb"
-Tiger,9,8,2,"run,kill"
-Mouse,2,4,1.5,"dig,swim,poison"
-Fish,2,2,1,swim

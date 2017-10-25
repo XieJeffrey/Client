@@ -327,7 +327,8 @@ using UnityEngine.UI;
                 return go;
             }
             else
-            {                
+            {
+                //SimpleFramework.Util.LogError("can't find parent:{0} ", parentName);
                 return null;
             }
         }
