@@ -18,6 +18,11 @@
 			"titleName":"HeroHp",
 			"titleType":"uint",
 			"memberName":"hp"
+		},
+		{
+			"titleName":"Rate",
+			"titleType":"float",
+			"memberName":"rate"
 		}
 
 	]

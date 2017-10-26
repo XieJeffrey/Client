@@ -8,11 +8,17 @@ using System.Reflection;
 
 public class TableUtility : Singleton<TableUtility>
 {
-    public bool Load<T>(string path, ref Dictionary<string, T> outPutData) where T : class
+    public bool Load<T>(string path, ref Dictionary<string, T> outPutData,string version) where T : class
     {
         try
         {
             byte[] data = File.ReadAllBytes(path);
+            string tblVersion = ByteUtility.ReadString(ref data);
+            if (tblVersion != version)
+            {
+                Util.LogError("{0} 读取失败，版本错误",path);
+                return false ;
+            }
             string[] typeStr = ByteUtility.ReadString(ref data).Split('|');
             string[] memberStr = ByteUtility.ReadString(ref data).Split('|');
 
@@ -33,6 +39,14 @@ public class TableUtility : Singleton<TableUtility>
                         case "string":
                             propertyInfo = type.GetField(memberStr[i]);
                             propertyInfo.SetValue(tmp, ByteUtility.ReadString(ref data));
+                            break;
+                        case "float":
+                            propertyInfo = type.GetField(memberStr[i]);
+                            propertyInfo.SetValue(tmp, ByteUtility.ReadFloat(ref data));
+                            break;
+                        case "short":
+                            propertyInfo = type.GetField(memberStr[i]);
+                            propertyInfo.SetValue(tmp, ByteUtility.ReadShort(ref data));
                             break;
                     }
                 }

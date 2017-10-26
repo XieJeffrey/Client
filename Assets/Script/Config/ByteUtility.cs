@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-class ByteUtility
+
+public class ByteUtility
 {
     #region WriteByte
     public static byte[] Write(object data, byte[] array)
@@ -18,6 +19,8 @@ class ByteUtility
             return WriteShort((short)data, array);
         if (data is string)
             return WriteString((string)data, array);
+        if (data is float)
+            return WriteFloat((float)data, array);
         Console.WriteLine("不支持的类型");
         return new byte[0];
     }
@@ -76,6 +79,12 @@ class ByteUtility
         tmp.CopyTo(newArray, array.Length);
         return newArray;
     }
+
+    private static byte[] WriteFloat(float data, byte[] array)
+    {
+        string str = data.ToString();
+        return WriteString(str, array);
+    }
     #endregion
 
     #region ReadByte
@@ -106,25 +115,29 @@ class ByteUtility
     public static string ReadString(ref byte[] data)
     {
         short length = ReadShort(ref data);
-        byte[] tmpStr = new byte[length];
+        byte[] strData = new byte[length];
         byte[] newData = new byte[data.Length - length];
-        for (int i = 0; i < data.Length; i++)
+        for (int i = 0; i < length; i++)
         {
-            if (i < length)
-            {
-                tmpStr[i] = data[i];
-            }
-            else
-            {
-                newData[i - length] = data[i];
-            }
+            strData[i] = data[i];
         }
-        string str = System.Text.Encoding.UTF8.GetString(tmpStr);
+        for (int i = 0; i < newData.Length; i++)
+        {
+            newData[i] = data[i + length];
+
+        }
+        string str = System.Text.Encoding.UTF8.GetString(strData);
         data = newData;
         return str;
     }
 
-    #endregion
+    public static float ReadFloat(ref byte[] data)
+    {
+        string str = ReadString(ref data);        
+        float value = float.Parse(str);
+        return value;
+    }
 
+    #endregion
 }
 

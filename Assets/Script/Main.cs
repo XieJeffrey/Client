@@ -60,10 +60,15 @@ public class Main : MonoBehaviour
 #else
         string path = Application.persistentDataPath;
 #endif
-        textBaseManager.instance.Load(path+"/test.tbl");  
-        for (int i = 1; i < textBaseManager.instance.Size; i++)
+        testBaseManager.instance.Load(path+"/test.tbl");  
+        for (int i = 0; i < testBaseManager.instance.Size; i++)
         {
-            Util.LogError(textBaseManager.instance.Get(i).heroName);
+            Util.LogError(testBaseManager.instance.Get(i).rate.ToString());
+        }
+        test1BaseManager.instance.Load(path + "/test1.tbl");
+        for (int i = 0; i < test1BaseManager.instance.Size; i++)
+        {
+            Util.LogError(test1BaseManager.instance.Get(i).atk.ToString());
         }
     }
 
