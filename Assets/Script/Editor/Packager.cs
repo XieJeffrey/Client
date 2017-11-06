@@ -43,7 +43,7 @@ public class Packager {
     public static void CopyConfig()
     {
         #region 生成配置表
-        string protoDirectory = Application.dataPath + "/GameRes/Config/proto";
+        string protoDirectory = Application.dataPath + "/GameRes/Config/proto";       
         if (Directory.Exists(protoDirectory))
         {
             string[] protoFileInfo = Directory.GetFiles(protoDirectory);

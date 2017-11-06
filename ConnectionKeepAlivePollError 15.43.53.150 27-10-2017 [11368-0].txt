@@ -1,0 +1,8 @@
+Base Exception Type: System.Threading.ThreadAbortException: Thread was being aborted
+  at (wrapper managed-to-native) System.Threading.WaitHandle:WaitOne_internal (intptr,int,bool)
+  at System.Threading.WaitHandle.WaitOne (Int32 millisecondsTimeout, Boolean exitContext) [0x00032] in /Users/builduser/buildslave/mono/build/mcs/class/corlib/System.Threading/WaitHandle.cs:353 
+  at NetworkCommsDotNet.Connections.Connection.ConnectionKeepAliveWorker () [0x00000] in <filename unknown>:0 
+
+Stack Trace:   at (wrapper managed-to-native) System.Threading.WaitHandle:WaitOne_internal (intptr,int,bool)
+  at System.Threading.WaitHandle.WaitOne (Int32 millisecondsTimeout, Boolean exitContext) [0x00032] in /Users/builduser/buildslave/mono/build/mcs/class/corlib/System.Threading/WaitHandle.cs:353 
+  at NetworkCommsDotNet.Connections.Connection.ConnectionKeepAliveWorker () [0x00000] in <filename unknown>:0 

@@ -50,6 +50,7 @@ public class Main : MonoBehaviour
     void OnInit()
     {
         gameObject.AddComponent<GameManager>();
+        gameObject.AddComponent<NetworkManager>();
         LoadConfig();
     }
 
