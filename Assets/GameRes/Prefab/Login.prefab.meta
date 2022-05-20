@@ -1,8 +1,7 @@
 fileFormatVersion: 2
 guid: 55c8bda76b1829e498a750f5398e66f0
-timeCreated: 1457406928
-licenseType: Free
-NativeFormatImporter:
+PrefabImporter:
+  externalObjects: {}
   userData: 
-  assetBundleName: login
-  assetBundleVariant: assetbundle
+  assetBundleName: 
+  assetBundleVariant: 

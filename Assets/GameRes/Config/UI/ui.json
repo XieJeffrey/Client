@@ -1,0 +1,8 @@
+[
+    {
+        "id":1,
+        "order":1,
+        "asset":"Prefab/start.prefab",
+        "isPreload":1
+    }
+]
