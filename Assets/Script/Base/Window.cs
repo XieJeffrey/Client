@@ -10,8 +10,8 @@ public class Window : MonoBehaviour {
 
     #region UI方法
 
-    protected void RegistEvent(UIEventType UIEventType, Action<object[]> cb) {
-        App.Event.RegistEvent(UIEventType, gameObject, cb);
+    protected void Rgister(UIEventType UIEventType, Action<object[]> cb) {
+        App.Event.On(UIEventType, gameObject, cb);
     }
 
     public GameObject Find(string goName) {
@@ -59,9 +59,6 @@ public class Window : MonoBehaviour {
                 m_panel_array[i].sortingOrder = m_panel_array[i].sortingOrder + m_sortingOrder;
             }
             #endregion
-
-
-            RegistEvents();
         }
     }
 

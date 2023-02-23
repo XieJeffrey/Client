@@ -10,11 +10,11 @@ namespace XX {
         public Action<object[]> handle;
     }
 
-    public class EventComponent : Singleton<EventComponent> {
+    public class EventComponent :MonoBehaviour {
         private List<UIEvent> uiEventList = new List<UIEvent>();
 
         #region UI消息分发
-        public void RegistEvent(UIEventType m_event, GameObject go, Action<object[]> handle) {
+        public void On(UIEventType m_event, GameObject go, Action<object[]> handle) {
             UIEvent tmp = new UIEvent();
             tmp.eventType = m_event;
             tmp.gameObject = go;
@@ -42,7 +42,7 @@ namespace XX {
             }
         }
 
-        public void NotifyUIEvent(UIEventType m_event, params object[] args) {
+        public void Emit(UIEventType m_event, params object[] args) {
             for (int i = 0; i < uiEventList.Count; i++) {
                 if (uiEventList[i].eventType == m_event && uiEventList[i].gameObject.activeInHierarchy) {
                     uiEventList[i].handle?.Invoke(args);

@@ -5,9 +5,10 @@ using System.Collections.Generic;
 /// </summary>
 
 
-public enum WindowType
+public enum UIType
 {
-    LoginWindow = 1,
+    start,
+    game,
 }
 
 public enum ManagerType

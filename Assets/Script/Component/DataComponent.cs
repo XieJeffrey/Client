@@ -5,25 +5,25 @@ using Proto.Promises;
 using System;
 
 namespace XX {
-    public class DataComponent : MonoBehaviour,IProcedure {
+    public class DataComponent : MonoBehaviour {
         private long todayLeftTime;
         public PlayDataObj PlayData=new PlayDataObj();
+        public GameDataObj GameData = new GameDataObj();
 
         /// <summary>
         /// 初始化
         /// </summary>
         /// <returns></returns>
-        public void Init() {
-            PlayDataUtil.instance.Init();
-            EveryDataTask().Then(() => {
-                InitFinish();
-            });         
-        }
-
-        public void InitFinish() { }
-
-        public void UpdateProgress(float value) { 
-            
+        public Promise Init() {
+            return Promise.New((defeered) => {
+                //加载本地玩家数据
+                PlayDataUtil.instance.Init();
+                //初始化每日任务之后加载游戏使用到的数据
+                EveryDataTask().Then(GameDataUtil.instance.Init)
+                .Then(() => {
+                    defeered.Resolve();
+                });           
+            });
         }
 
         /// <summary>

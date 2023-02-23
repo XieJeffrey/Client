@@ -35,11 +35,20 @@ public class TimerComponent : MonoBehaviour {
         }
     }
 
+    /// <summary>
+    /// 设置定时器
+    /// </summary>
+    /// <param name="duration">n秒之后触发</param>
+    /// <param name="func">回调函数</param>
     public void SetTimeOut(float duration, Action func) {
         timer m_timer = new timer(duration, 1, func);
         timerList.Add(m_timer);
     }
 
+    /// <summary>
+    /// 下一帧触发
+    /// </summary>
+    /// <param name="cb"></param>
     public void Next(Action cb) {
         StartCoroutine(NextFrameTimer(cb));
     }

@@ -6,60 +6,40 @@ using Proto.Promises;
 
 public class App : MonoBehaviour
 {
-    public GameObject reporter;
-    public static ResourceManager ResourceMgr;
+    private GameObject reporter;
+    public static ResourceComponent ResourceMgr;
     public static UIComponent UI;
     public static EventComponent Event;
     public static TimerComponent Timer;
     public static DataComponent Data;
-    void Awake()
-    {
+
+    void Awake() {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
-        InitComponent().Then(()=> {
-            GameInit();
-        });
+        AppStart();
+
+    }
+    void AppStart() {
+        InitComponent();
+        GameInit();
     }
 
-    Promise InitComponent() {
-        return Promise.New((deferred) => {
-            reporter = GameObject.Find("Reporter");
-            reporter.SetActive(AppConst.DebugTool);
-            ResourceMgr = ResourceComponent.instance;
-            UI = UIComponent.instance;
-            Event = EventComponent.instance;
-            Timer = GameObject.Find("Components").GetComponent<TimerComponent>();
-            Data = GameObject.Find("Components").GetComponent<DataComponent>();
-            deferred.Resolve();
-        });        
+    /// <summary>
+    /// 初始化各个部分的组件
+    /// </summary>
+    /// <returns></returns>
+    void InitComponent() {
+        reporter = GameObject.Find("Reporter");
+        reporter.SetActive(AppConst.DebugTool);
+        ResourceMgr = ResourceComponent.instance;
+        Timer = GameObject.Find("Components").GetComponent<TimerComponent>();
+        Data = GameObject.Find("Components").GetComponent<DataComponent>();
+        UI = GameObject.Find("Components").GetComponent<UIComponent>();
+        Event = GameObject.Find("Components").GetComponent<EventComponent>();
     }
 
-    void GameInit()
-    {
-        Data.Init();
-    }
-
-    void OnInit()
-    {
-       
-    }
-
-    void LoadConfig()
-    {
+    void GameInit() {
+        Data.Init().Then(UI.Init);
     }
 
 
-    void OnCheckAppVersion(bool result)
-    {
-       
-    }
-
-    void OnCopyResFinish()
-    {
-     
-    }
-
-    void OnUpdateBundleRes()
-    {
-        
-    }
 }

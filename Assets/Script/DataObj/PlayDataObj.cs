@@ -3,22 +3,24 @@ using System.Collections.Generic;
 using UnityEngine;
 using Newtonsoft.Json;
 
-namespace XX {
-    public class PlayDataObj {
+namespace XX
+{
+    public class PlayDataObj
+    {
         public long id;
         public int gold;
         public string name;
     }
 
-    public class PlayDataUtil : Singleton<PlayDataUtil>, IDataUtil {
+    public class PlayDataUtil : Singleton<PlayDataUtil>, IDataUtil
+    {
         public string storeKey => "playData_" + AppConst.storeKey;
 
         public void Init() {
             Load();
-            EveryDataTask();
         }
 
-        public  void Load() {
+        public void Load() {
             string jsonStr = PlayerPrefs.GetString(storeKey, "");
             if (string.IsNullOrEmpty(jsonStr)) {
                 InitPlayerData();
@@ -36,11 +38,16 @@ namespace XX {
             Save();
         }
 
-        public  void Save() {
+        public void Save() {
             string jsonStr = JsonConvert.SerializeObject(App.Data.PlayData);
-            PlayerPrefs.SetString(storeKey, jsonStr);            
+            PlayerPrefs.SetString(storeKey, jsonStr);
         }
 
-        public void EveryDataTask() { }
+        /// <summary>
+        /// 执行每日0点任务，比如弹出每日奖励，每日签到等等
+        /// </summary>
+        public void EveryDataTask() {
+             
+        }
     }
 }

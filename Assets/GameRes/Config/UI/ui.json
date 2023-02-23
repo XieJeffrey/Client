@@ -1,6 +1,6 @@
 [
     {
-        "id":1,
+        "name":"start",
         "order":1,
         "asset":"Prefab/start.prefab",
         "isPreload":1

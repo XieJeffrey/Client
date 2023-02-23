@@ -6,24 +6,36 @@ using Newtonsoft.Json.Linq;
 using Proto.Promises;
 using System;
 
-namespace XX {
-    class UIConfig {
-        private static JArray config;
-        public static List<WindowType> preLoad;
-        public static Promise Init() {
+namespace XX
+{
+    class UIConfig
+    {
+        private JArray config;
+        public  Dictionary<string, int> uiOrder = new Dictionary<string, int>();
+        public List<UIType> preloadList = new List<UIType>();
+        public Promise Init() {
             return Promise.New((deferred) => {
-                App.ResourceMgr.LoadAssetPro<TextAsset>("config/ui.json").Then((TextAsset textAsset) => {
+                App.ResourceMgr.LoadAssetPro<TextAsset>("Config/UI/ui.json").Then((TextAsset textAsset) => {
                     try {
+                        //º”‘ÿUI≈‰÷√
                         Debug.Log(textAsset.text);
                         config = JArray.Parse(textAsset.text);
-                        deferred.Resolve();
-
-                        preLoad = new List<WindowType>();
+                        //ª∫¥ÊUI≤„º∂
                         for (int i = 0; i < config.Count; i++) {
-                            if (((int)config[i]["isPreload"]) == 1) {
-                                preLoad.Add((WindowType)((int)config[i]["id"]));
+                            string name = config[i]["name"].ToString();
+                            if (!uiOrder.ContainsKey(name)) {
+                                uiOrder.Add(name, int.Parse(config[i]["order"].ToString()));
                             }
                         }
+                        //ª∫¥Ê‘§º”‘ÿ≈‰÷√
+                        for (int i = 0; i < config.Count; i++) {
+                            string name = config[i]["name"].ToString();
+                            UIType type = (UIType)Enum.Parse(typeof(UIType), name);
+                            bool isPreload = int.Parse(config[i]["isPreload"].ToString())==1;
+                            if (!preloadList.Contains(type))
+                                preloadList.Add(type);
+                        }
+                        deferred.Resolve();
                     }
                     catch (Exception e) {
                         deferred.Reject(e);
@@ -33,10 +45,10 @@ namespace XX {
             });
         }
 
-        public static string GetUIAsset(WindowType type) {
-            int id = (int)type;
+        public string GetUIAsset(UIType type) {
+            string name = type.ToString();
             for (int i = 0; i < config.Count; i++) {
-                if (id == ((int)config[i]["id"])) {
+                if (name == config[i]["name"].ToString()) {
                     return config[i]["asset"].ToString();
                 }
             }
@@ -44,11 +56,11 @@ namespace XX {
             return "";
         }
 
-        public static int GetUISortingOrder(WindowType type) {
-            int id = (int)type;
+        public int GetUISortingOrder(UIType type) {
+            string name = type.ToString();
             for (int i = 0; i < config.Count; i++) {
-                if (id == ((int)config[i]["id"])) {
-                    return ((int)config[i]["order"]);
+                if (name == config[i]["name"].ToString()) {
+                    return (int.Parse(config[i]["order"].ToString()));
                 }
             }
 
@@ -56,49 +68,52 @@ namespace XX {
         }
     }
 
-    public class UIComponent : Singleton<UIComponent>, IProcedure {
-        public GameObject UIRoot;
-        private Dictionary<WindowType, Window> m_winDic = new Dictionary<WindowType, Window>();
-        private List<WindowType> m_lodingwindow = new List<WindowType>();
+    public class UIComponent : MonoBehaviour
+    {
+        private UIConfig uiConfig=new UIConfig();//ui≈‰÷√
+        public GameObject UIRoot;//ui∏˘Ω⁄µ„
+        private Dictionary<UIType, Window> m_winDic = new Dictionary<UIType, Window>();
+        private List<UIType> m_lodingwindow = new List<UIType>();
 
-        public void Init() {
-            UIConfig.Init().Then(() => {
-                UIRoot = GameObject.Find("GUICamera/Canvas");
-                PreLoad(UIConfig.preLoad).Then(() => {
-                    InitFinish();
+        public Promise Init() {            
+            return Promise.New((defeered) => {
+                uiConfig.Init().Then(() => {
+                    UIRoot = GameObject.Find("GUICamera/Canvas");
+                    PreLoad(uiConfig.preloadList).Then(() => {
+                        ShowWindow(UIType.start);
+                        defeered.Resolve();
+                    });
                 });
             });
+         
         }
-
-        public void UpdateProgress(float value) { 
-        
-        }
-        public void InitFinish() { }
 
         /// <summary>
         /// ‘§º”‘ÿ¥∞ÃÂ
         /// </summary>
         /// <param name="winList"></param>
         /// <returns></returns>
-        private Promise PreLoad(List<WindowType> winList) {
+        private Promise PreLoad(List<UIType> winList) {
             return Promise.New((deferred => {
                 if (winList.Count == 0) {
                     deferred.Resolve();
                     return;
                 }
 
-                List<WindowType> loadedWinList = new List<WindowType>();
+                List<UIType> loadedWinList = new List<UIType>();
                 for (int i = 0; i < winList.Count; i++) {
-                    WindowType type = winList[i];
-                    string asset = UIConfig.GetUIAsset(type);
+                    UIType type = winList[i];
+                    string asset = uiConfig.GetUIAsset(type);
                     if (string.IsNullOrEmpty(asset)) {
                         deferred.Reject(new Exception(string.Format("wintype:{ 0 },assetName is null")));
                     }
                     App.ResourceMgr.LoadAssetPro<GameObject>(asset).Then((GameObject wingo) => {
                         loadedWinList.Add(type);
-                        m_winDic.Add(type, wingo.GetComponent<Window>());
-                        InitWindow(type, wingo);
+                        GameObject go = GameObject.Instantiate(wingo);
+                        m_winDic.Add(type, go.GetComponent<Window>());
+                        InitWindow(type, go);
                         m_winDic[type].OnInit();
+                        m_winDic[type].RegistEvents();
                         if (loadedWinList.Count == winList.Count) {
                             deferred.Resolve();
                         }
@@ -112,7 +127,7 @@ namespace XX {
         /// </summary>
         /// <param name="wintype"></param>
         /// <param name="args"></param>
-        public void ShowWindow(WindowType wintype, params object[] args) {
+        public void ShowWindow(UIType wintype, params object[] args) {
             if (m_winDic.ContainsKey(wintype)) {
                 m_winDic[wintype].Show();
             }
@@ -126,21 +141,23 @@ namespace XX {
         /// </summary>
         /// <param name="wintype"></param>
         /// <param name="args"></param>
-        private void CreateWindow(WindowType wintype, params object[] args) {
+        private void CreateWindow(UIType wintype, params object[] args) {
             if (m_lodingwindow.Contains(wintype)) {
                 return;
             }
             m_lodingwindow.Add(wintype);
-            string asset = UIConfig.GetUIAsset(wintype);
+            string asset = uiConfig.GetUIAsset(wintype);
             if (string.IsNullOrEmpty(asset)) {
                 Debug.LogError(string.Format("wintype:{0},assetName is null"));
                 return;
             }
             App.ResourceMgr.LoadAssetPro<GameObject>(asset).Then((GameObject winGo) => {
-                m_winDic.Add(wintype, winGo.GetComponent<Window>());
+                GameObject go = GameObject.Instantiate(winGo);
+                m_winDic.Add(wintype, go.GetComponent<Window>());
                 m_lodingwindow.Remove(wintype);
-                InitWindow(wintype, winGo);
+                InitWindow(wintype,go);
                 m_winDic[wintype].OnInit();
+                m_winDic[wintype].RegistEvents();
                 m_winDic[wintype].Show(args);
             });
         }
@@ -150,7 +167,7 @@ namespace XX {
         /// </summary>
         /// <param name="wintype"></param>
         /// <param name="args"></param>
-        public void HideWindow(WindowType wintype, params object[] args) {
+        public void HideWindow(UIType wintype, params object[] args) {
             if (m_winDic.ContainsKey(wintype)) {
                 m_winDic[wintype].Hide(args);
             }
@@ -161,7 +178,7 @@ namespace XX {
         /// </summary>
         /// <param name="type"></param>
         /// <param name="go"></param>
-        private void InitWindow(WindowType type, GameObject go) {
+        private void InitWindow(UIType type, GameObject go) {
             go.transform.SetParent(UIRoot.transform);
             go.transform.localScale = Vector3.one;
             go.transform.localPosition = Vector3.zero;
@@ -175,7 +192,7 @@ namespace XX {
                 canvas = go.AddComponent<Canvas>();
 
             canvas.overrideSorting = true;
-            canvas.sortingOrder = UIConfig.GetUISortingOrder(type);
+            canvas.sortingOrder = uiConfig.GetUISortingOrder(type);
         }
 
         /// <summary>
@@ -183,7 +200,7 @@ namespace XX {
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public bool IsShow(WindowType type) {
+        public bool IsShow(UIType type) {
             if (IsActive(type))
                 return true;
             else {
@@ -201,7 +218,7 @@ namespace XX {
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        public bool IsActive(WindowType type) {
+        public bool IsActive(UIType type) {
             if (!m_winDic.ContainsKey(type))
                 return false;
 
