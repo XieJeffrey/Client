@@ -12,6 +12,7 @@ public class App : MonoBehaviour
     public static EventComponent Event;
     public static TimerComponent Timer;
     public static DataComponent Data;
+    public static AudioComponent Audio;
 
     void Awake() {
         Screen.sleepTimeout = SleepTimeout.NeverSleep;
@@ -35,6 +36,7 @@ public class App : MonoBehaviour
         Data = GameObject.Find("Components").GetComponent<DataComponent>();
         UI = GameObject.Find("Components").GetComponent<UIComponent>();
         Event = GameObject.Find("Components").GetComponent<EventComponent>();
+        Audio=GameObject.Find("Components").GetComponent<AudioComponent>();
     }
 
     void GameInit() {
