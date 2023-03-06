@@ -2,7 +2,13 @@
     {
         "name":"start",
         "order":1,
-        "asset":"Prefab/start.prefab",
+        "asset":"Prefab/Start.prefab",
         "isPreload":1
+    },
+    {
+        "name": "game",
+        "order": 2,
+        "asset": "Prefab/Game.prefab",
+        "isPreload": 0
     }
 ]

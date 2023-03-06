@@ -32,7 +32,7 @@ namespace XX
                             string name = config[i]["name"].ToString();
                             UIType type = (UIType)Enum.Parse(typeof(UIType), name);
                             bool isPreload = int.Parse(config[i]["isPreload"].ToString())==1;
-                            if (!preloadList.Contains(type))
+                            if (!preloadList.Contains(type)&&isPreload)
                                 preloadList.Add(type);
                         }
                         deferred.Resolve();
@@ -105,7 +105,7 @@ namespace XX
                     UIType type = winList[i];
                     string asset = uiConfig.GetUIAsset(type);
                     if (string.IsNullOrEmpty(asset)) {
-                        deferred.Reject(new Exception(string.Format("wintype:{ 0 },assetName is null")));
+                        deferred.Reject(new Exception(string.Format("wintype:{0},assetName is null")));
                     }
                     App.ResourceMgr.LoadAssetPro<GameObject>(asset).Then((GameObject wingo) => {
                         loadedWinList.Add(type);
@@ -182,7 +182,7 @@ namespace XX
             go.transform.SetParent(UIRoot.transform);
             go.transform.localScale = Vector3.one;
             go.transform.localPosition = Vector3.zero;
-            (go.transform as RectTransform).sizeDelta = (UIRoot.transform as RectTransform).sizeDelta;
+           // (go.transform as RectTransform).sizeDelta = (UIRoot.transform as RectTransform).sizeDelta;
 
             if (go.GetComponent<GraphicRaycaster>() == null)
                 go.AddComponent<GraphicRaycaster>();

@@ -10,6 +10,7 @@ namespace XX
         public long id;
         public int gold;
         public string name;
+        public int lv;
     }
 
     public class PlayDataUtil : Singleton<PlayDataUtil>, IDataUtil
@@ -34,6 +35,7 @@ namespace XX
             App.Data.PlayData.id = Util.Now + Random.Range(1, 1000);
             App.Data.PlayData.name = "player_" + Util.Now.ToString();
             App.Data.PlayData.gold = 0;
+            App.Data.PlayData.lv = 1;
 
             Save();
         }
